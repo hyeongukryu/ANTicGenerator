@@ -15,7 +15,7 @@ namespace ANTicGenerator
             string iDirectory = Console.ReadLine();
             int layersCount = int.Parse(Console.ReadLine());
 
-            int images = 300;
+            int images = int.Parse(Console.ReadLine());
 
             Random rand = new Random(42);
             List<int> seeds = new List<int>();
