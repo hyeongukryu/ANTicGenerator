@@ -5,47 +5,67 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.Drawing;
+using System.IO;
+using LinqToTwitter;
 
 namespace ANTicGenerator
 {
     class Program
     {
-        void Start()
+        void UpdateImage(Bitmap bitmap)
+        {
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            stream.Close();
+            var buffer = stream.GetBuffer();
+
+            var auth = new SingleUserAuthorizer
+            {
+                Credentials = new SingleUserInMemoryCredentials
+                {
+                    ConsumerKey = "1",
+                    ConsumerSecret = "2",
+                    TwitterAccessToken = "3",
+                    TwitterAccessTokenSecret = "4"
+                }
+            };
+
+            var context = new TwitterContext(auth);
+
+            context.UpdateAccountImage(buffer, "ANTicGeneratorRocks.png", "png", true);
+        }
+
+        Bitmap MakeImage()
         {
             string iDirectory = Console.ReadLine();
             int layersCount = int.Parse(Console.ReadLine());
 
-            int images = int.Parse(Console.ReadLine());
+            // int images = int.Parse(Console.ReadLine());
 
-            Random rand = new Random(42);
-            List<int> seeds = new List<int>();
-            for (int i = 0; i < images; i++)
+            Random rand = new Random(/*42*/);
+            var seed = rand.Next();
+
+            var layers = new List<Bitmap>();
+
+            for (var layer = 1; layer <= layersCount; layer++)
             {
-                seeds.Add(rand.Next());
+                layers.Add(new Bitmap(System.IO.Path.Combine(iDirectory,
+                    string.Format("{0}.png", layer))));
             }
 
-            System.Threading.Tasks.Parallel.For(0, images, (i) =>
-            {
-                var layers = new List<Bitmap>();
+            var background = new Bitmap(System.IO.Path.Combine(iDirectory, "background.png"));
 
-                for (var layer = 1; layer <= layersCount; layer++)
-                {
-                    layers.Add(new Bitmap(System.IO.Path.Combine(iDirectory,
-                        string.Format("{0}.png", layer))));
-                }
+            Processor processor = new Processor();
+            processor.Background = background;
+            processor.Layers = layers;
 
-                var background = new Bitmap(System.IO.Path.Combine(iDirectory, "background.png"));
+            return processor.Process(seed);
+        }
 
-                Processor processor = new Processor();
-                processor.Background = background;
-                processor.Layers = layers;
-                var o = processor.Process(seeds[i]);
-
-                var oPath = System.IO.Path.Combine(Environment.CurrentDirectory, "o");
-                System.IO.Directory.CreateDirectory(oPath);
-                o.Save(System.IO.Path.Combine(oPath, string.Format("o{0}.png", i)));
-            });
-            Console.WriteLine("ok");
+        void Start()
+        {
+            var bitmap = MakeImage();
+            UpdateImage(bitmap);
         }
 
         static void Main(string[] args)
