@@ -19,14 +19,16 @@ namespace ANTicGenerator
             stream.Close();
             var buffer = stream.GetBuffer();
 
+            var lines = File.ReadAllLines("auth.txt");
+
             var auth = new SingleUserAuthorizer
             {
                 Credentials = new SingleUserInMemoryCredentials
                 {
-                    ConsumerKey = "1",
-                    ConsumerSecret = "2",
-                    TwitterAccessToken = "3",
-                    TwitterAccessTokenSecret = "4"
+                    ConsumerKey = lines[0],
+                    ConsumerSecret = lines[1],
+                    TwitterAccessToken = lines[2],
+                    TwitterAccessTokenSecret = lines[3]
                 }
             };
 
