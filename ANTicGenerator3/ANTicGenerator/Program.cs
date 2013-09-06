@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.IO;
 using LinqToTwitter;
+using System.Threading;
 
 namespace ANTicGenerator
 {
@@ -37,15 +38,21 @@ namespace ANTicGenerator
             context.UpdateAccountImage(buffer, "ANTicGeneratorRocks.png", "png", true);
         }
 
-        Bitmap MakeImage()
+        Bitmap MakeImage(int seed, Bitmap background, List<Bitmap> layers)
+        {
+            Processor processor = new Processor();
+            processor.Background = background;
+            processor.Layers = layers;
+
+            return processor.Process(seed);
+        }
+
+        void Start()
         {
             string iDirectory = Console.ReadLine();
             int layersCount = int.Parse(Console.ReadLine());
 
-            // int images = int.Parse(Console.ReadLine());
-
-            Random rand = new Random(/*42*/);
-            var seed = rand.Next();
+            Random rand = new Random();
 
             var layers = new List<Bitmap>();
 
@@ -57,17 +64,13 @@ namespace ANTicGenerator
 
             var background = new Bitmap(System.IO.Path.Combine(iDirectory, "background.png"));
 
-            Processor processor = new Processor();
-            processor.Background = background;
-            processor.Layers = layers;
+            while (true)
+            {
+                var bitmap = MakeImage(rand.Next(), background, layers);
+                UpdateImage(bitmap);
 
-            return processor.Process(seed);
-        }
-
-        void Start()
-        {
-            var bitmap = MakeImage();
-            UpdateImage(bitmap);
+                Thread.Sleep(5 * 60 * 1000);
+            }
         }
 
         static void Main(string[] args)
